@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlayerShooter : PredictedIdentity<PlayerShooter.ShootInput, PlayerShooter.ShootState>
 {
     [SerializeField] private float fireRate = 3;
-    [SerializeField] private float damage = 35;
+    [SerializeField] private int damage = 35;
     [SerializeField] private Vector3 centerOfCamera = new Vector3(0, 1.5f, 0);
 
     public float shootCooldown => 1 / fireRate;
@@ -39,7 +39,7 @@ public class PlayerShooter : PredictedIdentity<PlayerShooter.ShootInput, PlayerS
 
         if (hit.transform.TryGetComponent(out PlayerHealth health))
         {
-            health.ChangeHealth((int)-damage);
+            health.ChangeHealth(-damage);
         }
     }
 

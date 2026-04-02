@@ -220,6 +220,7 @@ GameObject:
   - component: {fileID: 204433777}
   - component: {fileID: 204433776}
   - component: {fileID: 204433775}
+  - component: {fileID: 204433778}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -259,8 +260,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.NetworkManager
   _stopPlayingOnDisconnect: 0
-  _startServerFlags: 9
-  _startClientFlags: 7
+  _startServerFlags: 0
+  _startClientFlags: 0
   _cookieScope: 1
   _dontDestroyOnLoad: 0
   _transport: {fileID: 204433775}
@@ -286,6 +287,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &204433778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204433774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c476fd9733ed148b4631bd99c76108, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNetLobbySetup::PurrLobby.ConnectionStarter
 --- !u!1001 &231796116
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1300,7 +1313,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6bfb61a9c24f05458070514736d49d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaitForPlayersState
-  expectedPlayers: 2
+  expectedPlayers: 1
 --- !u!1 &1251381701
 GameObject:
   m_ObjectHideFlags: 0
@@ -1330,6 +1343,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55180edbb56a44b40a7e18a5a1f6b117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoundEndedState
+  timeToRestart: 3
 --- !u!4 &1251381703
 Transform:
   m_ObjectHideFlags: 0

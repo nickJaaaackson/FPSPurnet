@@ -6,11 +6,28 @@ public class PlayerShooter : PredictedIdentity<PlayerShooter.ShootInput, PlayerS
     [SerializeField] private float fireRate = 3;
     [SerializeField] private int damage = 35;
     [SerializeField] private Vector3 centerOfCamera = new Vector3(0, 1.5f, 0);
-
+    [SerializeField] private float knockbackStrength = 5;
+    [SerializeField] private ParticleSystem muzzleFlash;
     public float shootCooldown => 1 / fireRate;
 
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private InputReader inputReader;
+
+    private PredictedEvent onShoot;
+
+    protected override void LateAwake()
+    {
+        base.LateAwake();
+        onShoot = new PredictedEvent(predictionManager, this);
+        onShoot.AddListener(OnShootEvent);
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        onShoot.RemoveListener(OnShootEvent);
+    }
+
     protected override void Simulate(ShootInput input, ref ShootState state, float delta)
     {
         if (state.cooldownTimer > 0)
@@ -27,6 +44,7 @@ public class PlayerShooter : PredictedIdentity<PlayerShooter.ShootInput, PlayerS
 
     private void Shoot()
     {
+        onShoot?.Invoke();
         var forward = playerMovement.currentInput.cameraForward ?? currentState.lastKnownForward;
         currentState.lastKnownForward = forward;
 
@@ -41,6 +59,17 @@ public class PlayerShooter : PredictedIdentity<PlayerShooter.ShootInput, PlayerS
         {
             health.ChangeHealth(-damage);
         }
+
+        if (hit.transform.TryGetComponent(out PlayerMovement otherMovement))
+        {
+            Vector3 knockback = forward.normalized * knockbackStrength * 5f;
+            knockback.y = knockbackStrength;
+            otherMovement.Knockback(knockback);
+        }
+    }
+    private void OnShootEvent()
+    {
+        muzzleFlash.Play();
     }
 
     protected override void UpdateInput(ref ShootInput input)

@@ -10,6 +10,8 @@ public class PlayerMovement : PredictedIdentity<PlayerMovement.MoveInput, Player
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private float jumpCooldown = 0.2f;
     [SerializeField] private LayerMask groundMask;
+    [SerializeField] private float knockbackRecoveryTime = 0.4f;
+    [SerializeField] private AnimationCurve knockbackRecoveryCurve;
 
     [SerializeField] private InputReader inputReader;
     [SerializeField] private FirstPersonCamera firstPersonCamera;
@@ -26,16 +28,28 @@ public class PlayerMovement : PredictedIdentity<PlayerMovement.MoveInput, Player
     protected override void Simulate(MoveInput input, ref MoveState state, float delta)
     {
         state.jumpCooldown -= delta;
+        if (state.knockbackTimer > 0)
+        {
+            state.knockbackTimer -= delta;
+            if (state.knockbackTimer < 0)
+            {
+                state.knockbackTimer = 0;
+            }
+        }
+        float moveMultiplier = 1;
+        Vector3 horizontal = new Vector3(predictedRigidbody.linearVelocity.x, 0, predictedRigidbody.linearVelocity.z);
 
-        Vector3 targetVelocity = (transform.forward * input.moveDirection.y + transform.right * input.moveDirection.x) * moveSpeed;
-        predictedRigidbody.AddForce(targetVelocity * acceleration);
+        float actualDamping = planerDamping * knockbackRecoveryCurve.Evaluate(Mathf.InverseLerp(knockbackRecoveryTime, 0, state.knockbackTimer));
 
-        Vector3 horizontal = new Vector3(predictedRigidbody.velocity.x, 0, predictedRigidbody.velocity.z);
-        predictedRigidbody.AddForce(-horizontal * planerDamping);
+        predictedRigidbody.AddForce(-horizontal * actualDamping);
         if (horizontal.magnitude > moveSpeed)
         {
-            predictedRigidbody.velocity = new Vector3(targetVelocity.x, predictedRigidbody.velocity.y, targetVelocity.z);
+            moveMultiplier = 0.2f; // if we're above max speed, reduce acceleration to avoid weird overshooting
         }
+
+        Vector3 targetVelocity = (transform.forward * input.moveDirection.y + transform.right * input.moveDirection.x) * moveSpeed;
+        predictedRigidbody.AddForce(targetVelocity * acceleration * moveMultiplier);
+
 
         if (input.jump && isGrounded() && state.jumpCooldown <= 0)
         {
@@ -81,6 +95,12 @@ public class PlayerMovement : PredictedIdentity<PlayerMovement.MoveInput, Player
         input.jump = false; // don't allow jumping on extrapolation, as it can cause weird behavior
     }
 
+    public void Knockback(Vector3 direction)
+    {
+        currentState.knockbackTimer = knockbackRecoveryTime;
+        predictedRigidbody.AddForce(direction, ForceMode.Impulse);
+    }
+
     private static Collider[] groundColliders = new Collider[8];
     private bool isGrounded()
     {
@@ -107,6 +127,7 @@ public class PlayerMovement : PredictedIdentity<PlayerMovement.MoveInput, Player
     public struct MoveState : IPredictedData<MoveState>
     {
         public float jumpCooldown;
+        public float knockbackTimer;
         public void Dispose() { }
     }
 }

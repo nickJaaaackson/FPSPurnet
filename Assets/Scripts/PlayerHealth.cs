@@ -1,14 +1,21 @@
 using PurrNet;
 using PurrNet.Prediction;
 using System;
+using TMPro;
 using UnityEngine;
 
 public class PlayerHealth : PredictedIdentity<PlayerHealth.HealthState>
 {
     [SerializeField] private int maxHealth;
+    [SerializeField] private GameObject healthCanvas;
+    [SerializeField] private TMP_Text healthText;
     public static event Action<PlayerID?> OnPlayerDeath;
     public static Action KillAllPlayers;
 
+    protected override void LateAwake()
+    {
+        healthCanvas.SetActive(isOwner);
+    }
     protected override HealthState GetInitialState()
     {
         return new HealthState()
@@ -24,15 +31,17 @@ public class PlayerHealth : PredictedIdentity<PlayerHealth.HealthState>
     {
         KillAllPlayers -= OnKillAllPlayers;
     }
+
     public void ChangeHealth(int change)
     {
         currentState.health += change;
-
+        healthText.SetText(currentState.health.ToString());
         if (currentState.health <= 0)
         {
             Die();
         }
     }
+
     private void Die()
     {
         //Debug.Log($"Player died with owner: {owner}");
